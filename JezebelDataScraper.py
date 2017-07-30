@@ -1,28 +1,24 @@
-__author__ = 'Anderson'
 from bs4 import BeautifulSoup
 import urllib.request
 import json
 import openpyxl
-from openpyxl.styles import Font
 
 from commentHelper import countWords
 from commentHelper import countCharacters
 from commentHelper import getCode2
 from commentHelper import findCode
-
-from commentHelper import findHeadline
 from commentHelper import findReplies
 
 '''Program to scrape comment data from Jezebel articles'''
 
-#row to start parsing at (change if needed)
+# row to start parsing at (change if needed)
 excelRow = 2
-#sheets and workbook to use, should be included in same directory
+# sheets and workbook to use, should be included in same directory
 wb = openpyxl.load_workbook('data.xlsx')
 sheet = wb.get_sheet_by_name("Sheet1")
 
 
-#Change index here to look for specific articles
+# Change index here to look for specific articles
 articleStartIndex = 0
 articleEndIndex = 1
 
@@ -41,16 +37,15 @@ currentIndex = articleStartIndex + 1
 
 
 
-#Comment holds comments with HTML styling, plain holds text only, childPlain for child comments
+# Comment holds comments with HTML styling, plain holds text only, childPlain for child comments
 plain = []
 childPlain = []
 debugCounter = 1
-articleCodes = getCode2() #this is for jezebel
-
+articleCodes = getCode2() # this is for jezebel
 
 
 for i in range(articleStartIndex, articleEndIndex):
-#Index to keep track of the comments (used to change link and get new comments)
+# Index to keep track of the comments (used to change link and get new comments)
     startIndex = 0
     numberOfComments = 0
     approvedChildComments = 0
@@ -63,7 +58,7 @@ for i in range(articleStartIndex, articleEndIndex):
         currentCode = findCode(webURL)
 
 
-    #Open request to webpage
+    # Open request to webpage
     try:
         web = urllib.request.urlopen(webURL)
     except:
@@ -73,7 +68,7 @@ for i in range(articleStartIndex, articleEndIndex):
     soup = BeautifulSoup(web.read(), "html.parser")
 
 
-    #Find the specific HTML element that holds the number of total replies
+    # Find the specific HTML element that holds the number of total replies
     try:
         r = findReplies(soup)
     except:
@@ -82,8 +77,8 @@ for i in range(articleStartIndex, articleEndIndex):
 
 
     headlineRow = excelRow
-    #sheet.cell(row=headlineRow, column=1).value = (headline)
-    #stats to keep track of
+    # sheet.cell(row=headlineRow, column=1).value = (headline)
+    # stats to keep track of
     avgMainWord = 0
     avgMainChar = 0
     avgChildWord = 0
@@ -91,12 +86,12 @@ for i in range(articleStartIndex, articleEndIndex):
 
     dataSetIsEmpty = False;
 
-    #Keep looping until we get all comments (calling different JSON links)
+    # Keep looping until we get all comments (calling different JSON links)
     while dataSetIsEmpty != True:
 
 
 
-        #Link can be changed to included non approved comments as well
+        # Link can be changed to included non approved comments as well
         if approved:
             jsonURL = "http://jezebel.com/api/comments/views/replies/{0}?dap=true&startIndex={1}&maxReturned" \
                   "=100&maxChildren=100&approvedOnly=true&cache=true".format(articleCodes[i], startIndex)
@@ -109,23 +104,17 @@ for i in range(articleStartIndex, articleEndIndex):
         page = urllib.request.urlopen(jsonURL).read()
         pageString = page.decode('utf-8')
 
-        #Turns JSON file into dictionary
+        # Turns JSON file into dictionary
         decoded = json.loads(pageString)
         dataSet = decoded["data"]["items"]
 
         if len(dataSet) == 0:
             dataSetIsEmpty = True
 
-
         counter = 0
-
-
-
-
-
         while counter < len(dataSet) and len(dataSet) != 0:
             print(counter)
-            #Going through the content and taking what we need
+            # Going through the content and taking what we need
             htmlLines = BeautifulSoup(dataSet[counter]["reply"]["display"], "html.parser")
             mainComment = htmlLines.findAll('p')
             fullComments = ""
@@ -133,7 +122,7 @@ for i in range(articleStartIndex, articleEndIndex):
                 text = comment.getText()
                 fullComments += " " + text
 
-            #making sure the comment is not empty
+            # making sure the comment is not empty
             if mainComment != "":
                 mainWordLen = countWords(fullComments)
                 mainCharLen = countCharacters(fullComments)
@@ -163,7 +152,7 @@ for i in range(articleStartIndex, articleEndIndex):
             counter += 1
         startIndex+=100
 
-    #Output to file after collection
+    # Output to file after collection
     if approved:
         sheet.cell(row = excelRow, column = 3).value = (numberOfComments + approvedChildComments)
         sheet.cell(row = excelRow, column = 6).value = ((numberOfComments))

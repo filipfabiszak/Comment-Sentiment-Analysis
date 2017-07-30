@@ -1,8 +1,6 @@
-__author__ = 'Anderson'
 from bs4 import BeautifulSoup
 import urllib.request
 import json
-import re
 import openpyxl
 from openpyxl.styles import Font
 
@@ -10,7 +8,6 @@ from commentHelper import countWords
 from commentHelper import countCharacters
 from commentHelper import getCode2
 from commentHelper import findCode
-
 from commentHelper import findHeadline
 from commentHelper import findReplies
 

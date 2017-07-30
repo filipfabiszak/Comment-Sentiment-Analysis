@@ -1,10 +1,10 @@
-__author__ = 'Anderson'
 from bs4 import BeautifulSoup
 import openpyxl
 import urllib.request
 import re
 
-#helper function to count words in a line
+
+# helper function to count words in a line
 def countWords(line):
     '''for word in wordList:
         if word.isspace() == False:
@@ -14,11 +14,12 @@ def countWords(line):
 
     return len(wordList)
 
-#helper function to counter character in a line
+# helper function to counter character in a line
 def countCharacters(line):
     return len(line) - line.count(' ')
 
-#Helper function to find article code in a link
+
+# Helper function to find article code in a link
 def findCode(link):
     code = ""
     regex = re.compile('[-+]?\d+[\.]?\d*')
@@ -26,7 +27,8 @@ def findCode(link):
     matchCode = re.search("\d{6,12}", link)
     return (matchCode.group())
 
-#Helper function to remove unneeded html tags
+
+# Helper function to remove unneeded html tags
 def remove(soup, tagname):
     for tag in soup.findAll(tagname):
         contents = tag.contents
@@ -35,7 +37,8 @@ def remove(soup, tagname):
         for tag in contents:
             parent.append(tag)
 
-#helper function to get article, filtering out most unneeded garbage
+
+# helper function to get article, filtering out most unneeded garbage
 def getArticle(link):
     try:
         webLink = urllib.request.urlopen(link)
@@ -60,7 +63,8 @@ def getArticle(link):
     print(fullComments)
     return fullComments
 
-#Helper function to get list of code from text file (GAWKER)
+
+# Helper function to get list of code from text file (GAWKER)
 def getCode():
     links = []
     articleCodes = []
@@ -72,7 +76,8 @@ def getCode():
         articleCodes.append(findCode(link))
     return articleCodes
 
-#Helper function to get list of code from text file (JEZEBEL)
+
+# Helper function to get list of code from text file (JEZEBEL)
 def getCode2():
     links = []
     articleCodes = []
@@ -84,13 +89,15 @@ def getCode2():
         articleCodes.append(findCode(link))
     return articleCodes
 
-#Helper function to get headline
+
+# Helper function to get headline
 def findHeadline(soup):
     headlineHTML = soup.find("h1", {"class": "headline"})
     headline = headlineHTML.getText()
     return headline
 
-#Helper function to get reply count
+
+# Helper function to get reply count
 def findReplies(soup):
     replies = soup.find("span",{"id": "js_reply-count"})
     r = int(replies.getText())
