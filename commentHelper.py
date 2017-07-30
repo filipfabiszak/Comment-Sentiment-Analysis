@@ -6,9 +6,6 @@ import re
 
 # helper function to count words in a line
 def countWords(line):
-    '''for word in wordList:
-        if word.isspace() == False:
-            words += 1'''
     punct = re.compile(r'([^A-Za-z0-9 ])')
     wordList = punct.sub("", line).split()
 
