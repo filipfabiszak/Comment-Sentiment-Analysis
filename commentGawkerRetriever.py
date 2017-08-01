@@ -11,6 +11,8 @@ from commentHelper import findCode
 from commentHelper import findHeadline
 from commentHelper import findReplies
 
+'''Script to retrieve Gawker comments into an excel file'''
+
 #row to start parsing at (change if needed)
 excelRow = 75645
 wb = openpyxl.load_workbook('jezebeltest.xlsx')
@@ -28,7 +30,7 @@ if userInput == "":
 
     articleStartIndex = int(input("Please choose the start index for the articles you want to scrap: ")) - 1
     articleEndIndex = articleStartIndex + int(input("Please choose how many articles you would like to scrap: "))
-    
+
 else:
     getSpecific = True
 
