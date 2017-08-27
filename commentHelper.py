@@ -86,6 +86,17 @@ def getCode2():
         articleCodes.append(findCode(link))
     return articleCodes
 
+def getSplinterCodes():
+    links = []
+    articleCodes = []
+    with open("splinterCoupleLinks.txt", "r") as text_file:
+        for line in text_file:
+            links.append(line.strip())
+
+    for link in links:
+        articleCodes.append(findCode(link))
+    return articleCodes
+
 
 # Helper function to get headline
 def findHeadline(soup):
@@ -94,8 +105,8 @@ def findHeadline(soup):
     return headline
 
 
-# Helper function to get reply count
+# Helper function to get reply count (defined at top of article)
 def findReplies(soup):
-    replies = soup.find("span",{"id": "js_reply-count"})
+    replies = soup.find("a",{"class": "js_meta__data--comment"}).find("span")
     r = int(replies.getText())
     return r

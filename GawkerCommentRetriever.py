@@ -11,10 +11,10 @@ from commentHelper import findCode
 from commentHelper import findHeadline
 from commentHelper import findReplies
 
-'''Script to retrieve Gawker comments into an excel file'''
+'''Script to retrieve Jezebel comments into an excel file'''
 
 #row to start parsing at (change if needed)
-excelRow = 75645
+excelRow = 1
 wb = openpyxl.load_workbook('jezebeltest.xlsx')
 sheet = wb.get_sheet_by_name("Sheet1")
 
@@ -22,7 +22,7 @@ sheet = wb.get_sheet_by_name("Sheet1")
 articleStartIndex = 0
 articleEndIndex = 1
 
-print("Note: This program only works on Gawker, links entered must include the 10 digit article code.")
+print("Note: This program only works on Jezebel, links entered must include the 10 digit article code.")
 print("")
 userInput = input("Press Enter for mass scraping OR paste link/article code for specific link scraping: ")
 if userInput == "":
@@ -91,7 +91,6 @@ for i in range(articleStartIndex, articleEndIndex):
         #Turns JSON file into dictionary
         decoded = json.loads(pageString)
         dataSet = decoded["data"]["items"]
-
         counter = 0
 
         while counter < len(dataSet):

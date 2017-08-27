@@ -14,7 +14,7 @@ from commentHelper import findReplies
 '''Script to retrieve Jezebel comments into an excel file'''
 
 #row to start parsing at (change if needed)
-excelRow = 2
+excelRow = 1
 #Workbook and worksheet
 wb = openpyxl.load_workbook('GawkerScrape.xlsx')
 sheet = wb.get_sheet_by_name("JezebelScrape2")
@@ -31,7 +31,7 @@ if userInput == "":
 
     articleStartIndex = int(input("Please choose the start index for the articles you want to scrap: ")) - 1
     articleEndIndex = articleStartIndex + int(input("Please choose how many articles you would like to scrap: "))
-    
+
 else:
     excelRow = int(input("Please indicate the excel row you want the information to be parsed into"))
     getSpecific = True
