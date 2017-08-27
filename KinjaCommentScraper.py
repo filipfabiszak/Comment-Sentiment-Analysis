@@ -116,7 +116,7 @@ for articleIndex in range(articleStartIndex, articleEndIndex):
 
 
             #making sure the comment is not empty
-            if mainComment != None:
+            if mainComment != "":
                 mainCommentWordCount = countWords(mainComment)
                 mainCommentCharacterCount = countCharacters(mainComment)
                 avgMainWord += mainCommentWordCount
@@ -145,60 +145,67 @@ for articleIndex in range(articleStartIndex, articleEndIndex):
 
             childCounter = 0
             while childCounter < len(childSet):
+
+                childComment = childSet[childCounter]["deprecatedFullPlainText"]
+
                 try:
                     imageSet = childSet[childCounter]["images"]
-                    imageColumn = 5
+                    imageColumn = 6
                     imageCounter = 0
                     imageLink = ""
                     while imageCounter < len(imageSet):
-                        imageType = BeautifulSoup(imageSet[imageCounter]["format"], "html.parser")
-                        imageId = BeautifulSoup(imageSet[imageCounter]["id"], "html.parser")
+                        imageType = imageSet[imageCounter]["format"]
+                        imageId = imageSet[imageCounter]["id"]
                         imageLink += "https://i.kinja-img.com/gawker-media/image/upload/"+str(imageId)+"."+str(imageType) + "   "
                         sheet.cell(row = excelRow, column = imageColumn).hyperlink = str(imageLink)
                         imageCounter += 1
                         imageColumn += 1
                         imageCount += 1
-
                 except:
                     imageLink = "nil"
+                    print("no child comment image")
 
-                htmlLine = BeautifulSoup(childSet[childCounter]["display"], "html.parser")
-                childComment = htmlLine.findAll('p')
-                fullComment = ""
-                if len(childComment) > 0:
-                    pass
-                else:
-                    childComment = htmlLines.findAll('h2')
-                    if not len(childComment) > 0:
-                        childComment = htmlLines.findAll('li')
-                for comment in childComment:
-                    text = comment.getText()
-                    fullComment += " " + text
+                # htmlLine = BeautifulSoup(childSet[childCounter]["display"], "html.parser")
+                # childComment = htmlLine.findAll('p')
+                # fullComment = ""
+                # if len(childComment) > 0:
+                #     pass
+                # else:
+                #     childComment = htmlLines.findAll('h2')
+                #     if not len(childComment) > 0:
+                #         childComment = htmlLines.findAll('li')
+                # for comment in childComment:
+                #     text = comment.getText()
+                #     fullComment += " " + text
 
-                childCounter+=1
-                if fullComment != "":
-                    childWordLen = countWords(fullComment)
-                    childCharLen = countCharacters(fullComment)
-                    try:
-                        if fullComment.strip() != "":
-                            sheet.cell(row=excelRow, column=2).value = fullComment
-                        else:
-                            sheet.cell(row=excelRow, column=2).value = "(child image comment)"
-                    except:
-                        sheet.cell(row=excelRow, column=2).value = "error string"
-                    sheet.cell(row = excelRow, column = 3).value = childWordLen
+                if childComment != "":
+                    childWordLen = countWords(childComment)
+                    childCharLen = countCharacters(childComment)
                     avgChildWord += childWordLen
-                    sheet.cell(row = excelRow, column =4).value = childCharLen
                     avgChildChar += childCharLen
+
+                    try:
+                        if childComment.strip() != "":
+                            sheet.cell(row=excelRow, column=3).value = childComment
+                        else:
+                            sheet.cell(row=excelRow, column=3).value = "(child image comment)"
+                    except:
+                        sheet.cell(row=excelRow, column=3).value = "error string"
+                    sheet.cell(row = excelRow, column = 4).value = childWordLen
+                    sheet.cell(row = excelRow, column = 5).value = childCharLen
                     excelRow+=1
                     approvedChildComments+= 1
                 elif imageLink != None:
-                    sheet.cell(row=excelRow, column=2).value = "(child image comment)"
-                    sheet.cell(row = excelRow, column = 3).value = 0
-                    sheet.cell(row = excelRow, column =4).value = 0
+                    sheet.cell(row = excelRow, column = 3).value = "(child image comment)"
+                    sheet.cell(row = excelRow, column = 4).value = 0
+                    sheet.cell(row = excelRow, column = 5).value = 0
                     excelRow+=1
                     approvedChildComments+= 1
+
+                childCounter+=1
+
             counter += 1
+
         startIndex+=100
         print("Adding another 100 to get comments " + startIndex)
 
@@ -236,8 +243,9 @@ for articleIndex in range(articleStartIndex, articleEndIndex):
 
     print("Article {} done".format(debugCounter))
     debugCounter+=1
+
     if(numberOfComments < 9):
-        excelRow += 11
+        excelRow += 12
     else:
         excelRow += 2
     wb.save('KinjaComments.xlsx')
