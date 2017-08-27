@@ -13,7 +13,8 @@ def countWords(line):
 
 # helper function to counter character in a line
 def countCharacters(line):
-    return len(line) - line.count(' ')
+    return len(line)
+    # - line.count(' ') spaces count as characters...
 
 
 # Helper function to find article code in a link
@@ -100,13 +101,14 @@ def getSplinterCodes():
 
 # Helper function to get headline
 def findHeadline(soup):
-    headlineHTML = soup.find("h1", {"class": "headline"})
+    headlineHTML = soup.find("h1", class_="headline")
     headline = headlineHTML.getText()
     return headline
 
 
 # Helper function to get reply count (defined at top of article)
 def findReplies(soup):
-    replies = soup.find("a",{"class": "js_meta__data--comment"}).find("span")
-    r = int(replies.getText())
+    replies = soup.find("a", class_="js_meta__data--comment")
+    comments=replies.find("span", class_="text")
+    r = int(comments.getText())
     return r

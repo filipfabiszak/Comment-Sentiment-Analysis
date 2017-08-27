@@ -8,12 +8,13 @@ from commentHelper import *
 '''Script to retrieve Kinja comments into an excel file'''
 
 # row to start inputting data (change if needed)
-excelRow = 1
+excelRow = 2
 wb = openpyxl.load_workbook('KinjaComments.xlsx')
 sheet = wb.get_sheet_by_name("Sheet1")
 
 #Change index here to look for specific articles
 debugCounter = 1
+
 articleStartIndex = 0
 articleEndIndex = 10
 
@@ -48,7 +49,7 @@ for articleIndex in range(articleStartIndex, articleEndIndex):
     try:
         web = urllib.request.urlopen(webURL)
     except:
-        print("Error, cannot open URL")
+        print("Error, cannot open URL: " + webURL)
         break
 
     soup = BeautifulSoup(web.read(), "html.parser")
@@ -57,22 +58,20 @@ for articleIndex in range(articleStartIndex, articleEndIndex):
     try:
         headline = findHeadline(soup)
         totalNumComments = findReplies(soup)
-        print("HEADLINE: " + headline)
-        print("NUMCOMMENTS: " + totalNumComments)
-
     except:
         print("Error, cannot find headline or totalcomments")
 
-
     headlineRow = excelRow
-    sheet.cell(row=headlineRow, column=1).value = "Article Title: " + headline
+    sheet.cell(row=headlineRow, column=1).value = currentCode
+    sheet.cell(row=headlineRow, column=2).hyperlink = webURL
+    sheet.cell(row=headlineRow+1, column=2).value = "Article Title: " + headline
+    # wb.save('KinjaComments.xlsx')
 
     #stats to keep track of
     avgMainWord = 0
     avgMainChar = 0
     avgChildWord = 0
     avgChildChar = 0
-
     imageCount = 0
 
     #Keep looping until we get all comments (calling different JSON links)
@@ -85,74 +84,63 @@ for articleIndex in range(articleStartIndex, articleEndIndex):
 
         page = urllib.request.urlopen(jsonURL).read()
         pageString = page.decode('utf-8')
-
         #Turns JSON file into dictionary
         decoded = json.loads(pageString)
         dataSet = decoded["data"]["items"]
 
         counter = 0
-
         while counter < len(dataSet):
 
             #Going through the content and taking what we need
-            htmlLines = BeautifulSoup(dataSet[counter]["reply"]["display"], "html.parser")
-            mainComment = htmlLines.findAll('p')
+            # htmlLines = BeautifulSoup(dataSet[counter]["reply"]["display"], "html.parser")
+            # mainComment = htmlLines.findAll('p')
+
+            mainComment = dataSet[counter]["reply"]["deprecatedFullPlainText"]
+
             try:
-                imageColumn = 5
+                imageColumn = 6
                 imageSet = dataSet[counter]["reply"]["images"]
                 imageCounter = 0
                 imageLink = ""
                 while imageCounter < len(imageSet):
-                    imageType = BeautifulSoup(imageSet[imageCounter]["format"], "html.parser")
-                    imageId = BeautifulSoup(imageSet[imageCounter]["id"], "html.parser")
-                    imageLink = "https://i.kinja-img.com/gawker-media/image/upload/"+str(imageId)+"."+str(imageType) + "   "
+                    imageType = imageSet[imageCounter]["format"]
+                    imageId = imageSet[imageCounter]["id"]
+                    print("DEBUG: SHOULD BE y23thde3dptilqbdxzty::" + imageId)
+                    imageLink = "https://i.kinja-img.com/gawker-media/image/upload/"+str(imageId)+"."+str(imageType)
                     sheet.cell(row = excelRow, column = imageColumn).hyperlink = str(imageLink)
                     imageCounter += 1
                     imageColumn += 1
                     imageCount += 1
             except:
-                print("fail")
-
-            fullComments = ""
-            if len(mainComment) > 0:
-                pass
-            else:
-                mainComment = htmlLines.findAll('h2')
-                if not len(mainComment) > 0:
-                    mainComment = htmlLines.findAll('li')
-
-
-
-            for comment in mainComment:
-                text = comment.getText()
-                fullComments += " " + text
+                print("no main comment image")
 
 
             #making sure the comment is not empty
-            if mainComment != "":
-                mainWordLen = countWords(fullComments)
-                mainCharLen = countCharacters(fullComments)
+            if mainComment != None:
+                mainCommentWordCount = countWords(mainComment)
+                mainCommentCharacterCount = countCharacters(mainComment)
+                avgMainWord += mainCommentWordCount
+                avgMainChar += mainCommentCharacterCount
                 try:
-                    if fullComments.strip() != "":
-                        sheet.cell(row=excelRow, column=2).value = fullComments
+                    if mainComment.strip() != "":
+                        sheet.cell(row=excelRow, column=3).value = mainComment
                     else:
-                        sheet.cell(row=excelRow, column=2).value = "(main image comment)"
+                        sheet.cell(row=excelRow, column=3).value = "(main image comment)"
                 except:
-                    sheet.cell(row=excelRow, column=2).value = "error string"
-                sheet.cell(row = excelRow, column = 3).value = mainWordLen
-                avgMainWord += mainWordLen
-                sheet.cell(row = excelRow, column =4).value = mainCharLen
-                avgMainChar += mainCharLen
-                sheet.cell(row=excelRow, column=2).font = Font(bold = True)
+                    sheet.cell(row=excelRow, column=3).value = "error string"
+                sheet.cell(row = excelRow, column=3).font = Font(bold = True)
+                sheet.cell(row = excelRow, column=4).value = mainCommentWordCount
+                sheet.cell(row = excelRow, column=5).value = mainCommentCharacterCount
                 excelRow+=1
             elif imageLink != None:
-                sheet.cell(row=excelRow, column=2).value = "(main image comment)"
-                sheet.cell(row = excelRow, column = 3).value = 0
-                sheet.cell(row = excelRow, column =4).value = 0
+                sheet.cell(row = excelRow, column = 3).value = "(main image comment)"
+                sheet.cell(row = excelRow, column = 3).font = Font(bold = True)
+                sheet.cell(row = excelRow, column = 4).value = 0
+                sheet.cell(row = excelRow, column = 5).value = 0
                 excelRow+=1
 
-
             numberOfComments+=1
+
             childSet = dataSet[counter]["children"]["items"]
 
             childCounter = 0
@@ -217,31 +205,32 @@ for articleIndex in range(articleStartIndex, articleEndIndex):
 
 
     #code to parse into excel document chosen above
-    headlineRow += 1
-    sheet.cell(row=headlineRow, column = 1).value = "Article no: " + str(articleIndex + 1)
-    sheet.cell(row = headlineRow+1, column = 1).value = "Number of total comments: {}".format(str(totalNumComments))
-    sheet.cell(row = headlineRow+2, column = 1).value = "Number of total posted comments: {}".\
+    # headlineRow += 1
+    # sheet.cell(row=headlineRow, column = 1).value = "Article no: " + str(articleIndex + 1)
+
+    sheet.cell(row = headlineRow+1, column = 2).value = "Number of total comments: {}".format(str(totalNumComments))
+    sheet.cell(row = headlineRow+2, column = 2).value = "Number of total posted comments: {}".\
         format(str(numberOfComments + approvedChildComments))
-    sheet.cell(row = headlineRow+3, column = 1).value = "Number of main comments: {}"\
+    sheet.cell(row = headlineRow+3, column = 2).value = "Number of main comments: {}"\
         .format(str(numberOfComments))
-    sheet.cell(row = headlineRow+4, column = 1).value = "Number of child comments: {}".\
+    sheet.cell(row = headlineRow+4, column = 2).value = "Number of child comments: {}".\
         format(str(approvedChildComments))
-    sheet.cell(row = headlineRow+5, column = 1).value = "Average Main Comment Word Count: {}".\
+    sheet.cell(row = headlineRow+5, column = 2).value = "Average Main Comment Word Count: {}".\
             format(str(avgMainWord/numberOfComments))
-    sheet.cell(row = headlineRow+6, column = 1).value = "Average Main Comment Character Count: {}".\
+    sheet.cell(row = headlineRow+6, column = 2).value = "Average Main Comment Character Count: {}".\
                 format(str(avgMainChar/numberOfComments))
     try:
-        sheet.cell(row = headlineRow+7, column = 1).value = "Average Child Comment Word Count: {}".\
+        sheet.cell(row = headlineRow+7, column = 2).value = "Average Child Comment Word Count: {}".\
                     format(str(avgChildWord/approvedChildComments))
-        sheet.cell(row = headlineRow+8, column = 1).value = "Average Child Comment Character Count: {}".\
+        sheet.cell(row = headlineRow+8, column = 2).value = "Average Child Comment Character Count: {}".\
                 format(str(avgChildChar/approvedChildComments))
     except:
-        sheet.cell(row = headlineRow+7, column = 1).value = "Average Child Comment Word Count: {}".\
+        sheet.cell(row = headlineRow+7, column = 2).value = "Average Child Comment Word Count: {}".\
                     format("0")
-        sheet.cell(row = headlineRow+8, column = 1).value = "Average Child Comment Character Count: {}".\
+        sheet.cell(row = headlineRow+8, column = 2).value = "Average Child Comment Character Count: {}".\
                 format("0")
 
-    sheet.cell(row = headlineRow+9, column = 1).value = "Number of images: {}".\
+    sheet.cell(row = headlineRow+9, column = 2).value = "Number of images: {}".\
             format(str(imageCount))
 
 
@@ -251,6 +240,6 @@ for articleIndex in range(articleStartIndex, articleEndIndex):
         excelRow += 11
     else:
         excelRow += 2
-    wb.save('KinjaTest.xlsx')
+    wb.save('KinjaComments.xlsx')
 
-wb.save('KinjaTest.xlsx')
+wb.save('KinjaComments.xlsx')
