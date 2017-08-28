@@ -38,10 +38,11 @@ for articleLink in validLinks:
     currentSource = findSource(articleLink)
     currentCode = findCode(articleLink)
     webURL = currentSource + currentCode
+    # print("")
     # print("link: " + articleLink)
     # print("source: " + currentSource)
     # print("code: " + currentCode)
-    # print("")
+
 
     try:
         web = urllib.request.urlopen(webURL)
@@ -96,7 +97,7 @@ for articleLink in validLinks:
                     imageType = imageSet[imageCounter]["format"]
                     imageId = imageSet[imageCounter]["id"]
                     imageLink = "https://i.kinja-img.com/gawker-media/image/upload/"+str(imageId)+"."+str(imageType)
-                    sheet.cell(row = excelRow, column = imageColumn).hyperlink = str(imageLink)
+                    sheet.cell(row = excelRow, column = imageColumn).hyperlink = imageLink
                     imageCounter += 1
                     imageColumn += 1
                     imageCount += 1

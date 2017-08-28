@@ -11,7 +11,6 @@ excelRow = 2
 wb = openpyxl.load_workbook('KinjaData.xlsx')
 sheet = wb.get_sheet_by_name("Sheet1")
 debugCounter = 1
-currentIndex =  1
 approved = True
 
 print("This program only works on Kinja websites, links intended for scraping should include a 10 digit article code.")
@@ -39,10 +38,10 @@ for articleLink in validLinks:
     currentSource = findSource(articleLink)
     currentCode = findCode(articleLink)
     webURL = currentSource + currentCode
+    print("")
     print("link: " + articleLink)
     print("source: " + currentSource)
     print("code: " + currentCode)
-    print("")
 
     try:
         web = urllib.request.urlopen(webURL)
@@ -87,19 +86,12 @@ for articleLink in validLinks:
         counter = 0
         while counter < len(dataSet) and len(dataSet) != 0:
 
-            # Going through the content and taking what we need
             mainComment = dataSet[counter]["reply"]["deprecatedFullPlainText"]
-
             try:
-                imageSet = dataSet[counter]["reply"]["images"]
-                imageCounter = 0
-                while imageCounter < len(imageSet):
-                    imageCounter += 1
-                    imageCount += 1
+                imageCount += len(dataSet[counter]["reply"]["images"])
             except:
-                print("no main comment image")
+                pass
 
-            # making sure the comment is not empty
             if mainComment != "":
                 mainCommentWordCount = countWords(mainComment)
                 mainCommentCharacterCount = countCharacters(mainComment)
@@ -114,15 +106,10 @@ for articleLink in validLinks:
             while childCounter < len(childSet):
 
                 childComment = childSet[childCounter]["deprecatedFullPlainText"]
-
                 try:
-                    imageSet = childSet[childCounter]["reply"]["images"]
-                    imageCounter = 0
-                    while imageCounter < len(imageSet):
-                        imageCounter += 1
-                        imageCount += 1
+                    imageCount += len(childSet[childCounter]["reply"]["images"])
                 except:
-                    print("no child comment image")
+                    pass
 
                 if childComment != "":
                     childWordLen = countWords(childComment)
@@ -134,39 +121,43 @@ for articleLink in validLinks:
             counter += 1
         startIndex+=100
 
-    # Output to file after collection
-    if approved:
-        sheet.cell(row = excelRow, column = 3).value = (numberOfComments + approvedChildComments)
-        sheet.cell(row = excelRow, column = 6).value = ((numberOfComments))
-        sheet.cell(row = excelRow, column = 8).value = ((approvedChildComments))
-        sheet.cell(row = excelRow, column = 13).value = ((avgMainWord/numberOfComments))
-        sheet.cell(row = excelRow, column = 15).value = ((avgMainChar/numberOfComments))
-        if approvedChildComments != 0:
-            sheet.cell(row = excelRow, column = 14).value = ((avgChildWord/approvedChildComments))
-            sheet.cell(row = excelRow, column = 16).value = ((avgChildChar/approvedChildComments))
-        else:
-            sheet.cell(row = excelRow, column = 14).value = ((approvedChildComments))
-            sheet.cell(row = excelRow, column = 16).value = ((approvedChildComments))
-    else:
-        sheet.cell(row = excelRow, column = 1).value = currentIndex
-        sheet.cell(row = excelRow, column = 2).value = totalNumComments
-        sheet.cell(row = excelRow, column = 3).value = ((numberOfComments + approvedChildComments))
-        sheet.cell(row = excelRow, column = 4).value = ((numberOfComments))
-        sheet.cell(row = excelRow, column = 5).value = ((approvedChildComments))
+    sheet.cell(row = excelRow, column = 1).hyperlink = webURL
+    sheet.cell(row = excelRow, column = 2).value = totalNumComments
+    sheet.cell(row = excelRow, column = 3).value = ((numberOfComments + approvedChildComments))
+    sheet.cell(row = excelRow, column = 4).value = ((numberOfComments))
+    sheet.cell(row = excelRow, column = 5).value = ((approvedChildComments))
+    try:
         sheet.cell(row = excelRow, column = 6).value = ((avgMainWord/numberOfComments))
         sheet.cell(row = excelRow, column = 7).value = ((avgMainChar/numberOfComments))
-        if approvedChildComments != 0:
-            sheet.cell(row = excelRow, column = 8).value = ((avgChildWord/approvedChildComments))
-            sheet.cell(row = excelRow, column = 9).value = ((avgChildChar/approvedChildComments))
-        else:
-            sheet.cell(row = excelRow, column = 8).value = ((approvedChildComments))
-            sheet.cell(row = excelRow, column = 9).value = ((approvedChildComments))
+    except:
+        sheet.cell(row = excelRow, column = 6).value = numberOfComments
+        sheet.cell(row = excelRow, column = 7).value = numberOfComments
+    try:
+        sheet.cell(row = excelRow, column = 8).value = ((avgChildWord/approvedChildComments))
+        sheet.cell(row = excelRow, column = 9).value = ((avgChildChar/approvedChildComments))
+    except:
+        sheet.cell(row = excelRow, column = 8).value = ((approvedChildComments))
+        sheet.cell(row = excelRow, column = 9).value = ((approvedChildComments))
 
-    currentIndex += 1
+    sheet.cell(row = excelRow, column = 10).value = imageCount
 
-    print("{} Article done".format(debugCounter))
+    # if approved:
+    # else:
+    #     sheet.cell(row = excelRow, column = 3).value = (numberOfComments + approvedChildComments)
+    #     sheet.cell(row = excelRow, column = 6).value = ((numberOfComments))
+    #     sheet.cell(row = excelRow, column = 8).value = ((approvedChildComments))
+    #     sheet.cell(row = excelRow, column = 13).value = ((avgMainWord/numberOfComments))
+    #     sheet.cell(row = excelRow, column = 15).value = ((avgMainChar/numberOfComments))
+    #     if approvedChildComments != 0:
+    #         sheet.cell(row = excelRow, column = 14).value = ((avgChildWord/approvedChildComments))
+    #         sheet.cell(row = excelRow, column = 16).value = ((avgChildChar/approvedChildComments))
+    #     else:
+    #         sheet.cell(row = excelRow, column = 14).value = ((approvedChildComments))
+    #         sheet.cell(row = excelRow, column = 16).value = ((approvedChildComments))
+
+    print("Article {} done".format(debugCounter))
     debugCounter+=1
     excelRow += 1
-    wb.save('data.xlsx')
+    wb.save('KinjaData.xlsx')
 
-wb.save('data.xlsx')
+wb.save('KinjaData.xlsx')
