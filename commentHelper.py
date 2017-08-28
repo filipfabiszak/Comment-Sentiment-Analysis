@@ -16,12 +16,14 @@ def countCharacters(line):
     return len(line)
     # - line.count(' ') spaces count as characters...
 
+# Helper function to find article source from a link
+def findSource(link):
+    matchCode = re.search(".*[/]", link)
+    return (matchCode.group())
 
-# Helper function to find article code in a link
+
+# Helper function to find article code from a link
 def findCode(link):
-    code = ""
-    regex = re.compile('[-+]?\d+[\.]?\d*')
-
     matchCode = re.search("\d{6,12}", link)
     return (matchCode.group())
 

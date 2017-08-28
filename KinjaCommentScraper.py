@@ -7,45 +7,55 @@ from commentHelper import *
 
 '''Script to retrieve Kinja comments into an excel file'''
 
-# row to start inputting data (change if needed)
+# row to start inputting data into excel spreadsheet
 excelRow = 2
 wb = openpyxl.load_workbook('KinjaComments.xlsx')
 sheet = wb.get_sheet_by_name("Sheet1")
 
-#Change index here to look for specific articles
 debugCounter = 1
 
 articleStartIndex = 0
-articleEndIndex = 32
+articleEndIndex = 6
 
-print("Note: This program only works on Kinja websites, files/links intended to be scraped should include a 10 digit article code.")
+print("This program only works on Kinja websites, links intended for scraping should include a 10 digit article code.")
+print("As is currently implemented, the following links in 'KinjaLinks.txt' will be ignored:")
+
+validLinks = []
+with open("KinjaLinks.txt", "r") as text_file:
+    for line in text_file:
+        try:
+            findCode(line.strip())
+            validLinks.append(line.strip())
+        except:
+            if line.strip() != "":
+                print(line.strip())
 print("")
-# userInput = input("Press Enter for mass scraping OR paste link/article code for specific link scraping: ")
-# if userInput == "":
-#     getSpecific = False
-
-# articleStartIndex = int(input("Please choose the start index for the articles you want to scrape: ")) - 1
-# articleEndIndex = articleStartIndex + int(input("Please choose how many articles you would like to scrape: "))
-
-# else:
-#     getSpecific = True
-
+print("There are " + str(len(validLinks)) + " valid articles: \n" + '\n'.join(validLinks))
+print("")
 articleCodes = getSplinterCodes()
 
-for articleIndex in range(articleStartIndex, articleEndIndex):
+
+for articleLink in validLinks:
+# for articleIndex in range(articleStartIndex, articleEndIndex):
 #Index to keep track of the comments (used to change link and get new comments)
+
+
     startIndex = 0
     numberOfComments = 0
     approvedChildComments = 0
 
-    currentCode = articleCodes[articleIndex]
-    webURL = "http://splinternews.com/{}".format(currentCode)
+    # currentCode = articleCodes[articleIndex]
+    # currentSource = "http://splinternews.com/"
 
-    # if getSpecific:
-    #     webURL = userInput
-    #     articleCodes[articleIndex] = findCode(webURL)
+    print("link: " + articleLink)
+    currentSource = findSource(articleLink)
+    print("source: " + currentSource)
+    currentCode = findCode(articleLink)
+    print("code: " + currentCode)
+    print("")
 
-    #Open request to webpage
+    webURL = currentSource + currentCode
+
     try:
         web = urllib.request.urlopen(webURL)
     except:
@@ -77,8 +87,8 @@ for articleIndex in range(articleStartIndex, articleEndIndex):
     while startIndex < totalNumComments:
 
         #Link can be changed to included non approved comments as well
-        jsonURL = "http://splinternews.com/api/comments/views/replies/{0}?dap=true&startIndex={1}&maxReturned" \
-                  "=100&maxChildren=100&approvedOnly=true&cache=true".format(articleCodes[articleIndex], startIndex)
+        jsonURL = currentSource + "api/comments/views/replies/{0}?dap=true&startIndex={1}&maxReturned" \
+                  "=100&maxChildren=100&approvedOnly=true&cache=true".format(currentCode, startIndex)
 
 
         page = urllib.request.urlopen(jsonURL).read()
@@ -184,7 +194,7 @@ for articleIndex in range(articleStartIndex, articleEndIndex):
                 childCounter+=1
             counter += 1
         startIndex+=100
-        print("Adding another 100 to get comments " + str(startIndex))
+        # print("Adding another 100 to get comments " + str(startIndex))
 
 
 
