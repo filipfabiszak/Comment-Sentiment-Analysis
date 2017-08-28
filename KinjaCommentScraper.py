@@ -11,11 +11,7 @@ from commentHelper import *
 excelRow = 2
 wb = openpyxl.load_workbook('KinjaComments.xlsx')
 sheet = wb.get_sheet_by_name("Sheet1")
-
 debugCounter = 1
-
-articleStartIndex = 0
-articleEndIndex = 6
 
 print("This program only works on Kinja websites, links intended for scraping should include a 10 digit article code.")
 print("As is currently implemented, the following links in 'KinjaLinks.txt' will be ignored:")
@@ -32,29 +28,20 @@ with open("KinjaLinks.txt", "r") as text_file:
 print("")
 print("There are " + str(len(validLinks)) + " valid articles: \n" + '\n'.join(validLinks))
 print("")
-articleCodes = getSplinterCodes()
-
 
 for articleLink in validLinks:
-# for articleIndex in range(articleStartIndex, articleEndIndex):
-#Index to keep track of the comments (used to change link and get new comments)
-
 
     startIndex = 0
     numberOfComments = 0
     approvedChildComments = 0
 
-    # currentCode = articleCodes[articleIndex]
-    # currentSource = "http://splinternews.com/"
-
-    print("link: " + articleLink)
     currentSource = findSource(articleLink)
-    print("source: " + currentSource)
     currentCode = findCode(articleLink)
-    print("code: " + currentCode)
-    print("")
-
     webURL = currentSource + currentCode
+    # print("link: " + articleLink)
+    # print("source: " + currentSource)
+    # print("code: " + currentCode)
+    # print("")
 
     try:
         web = urllib.request.urlopen(webURL)
@@ -90,14 +77,13 @@ for articleLink in validLinks:
         jsonURL = currentSource + "api/comments/views/replies/{0}?dap=true&startIndex={1}&maxReturned" \
                   "=100&maxChildren=100&approvedOnly=true&cache=true".format(currentCode, startIndex)
 
-
         page = urllib.request.urlopen(jsonURL).read()
         pageString = page.decode('utf-8')
         decoded = json.loads(pageString)
         dataSet = decoded["data"]["items"]
 
         counter = 0
-        while counter < len(dataSet):
+        while counter < len(dataSet) and len(dataSet) != 0:
 
             mainComment = dataSet[counter]["reply"]["deprecatedFullPlainText"]
 
