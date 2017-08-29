@@ -24,7 +24,7 @@ def findSource(link):
 
 # Helper function to find article code from a link
 def findCode(link):
-    matchCode = re.search("\d{6,12}", link)
+    matchCode = re.search("\d{10}$", link)
     return (matchCode.group())
 
 

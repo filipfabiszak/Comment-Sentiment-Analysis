@@ -26,7 +26,7 @@ with open("KinjaLinks.txt", "r") as text_file:
             if line.strip() != "":
                 print(line.strip())
 print("")
-print("There are " + str(len(validLinks)) + " valid articles: \n" + '\n'.join(validLinks))
+print("There are " + str(len(validLinks)) + " valid articles")
 print("")
 
 for articleLink in validLinks:
@@ -47,7 +47,7 @@ for articleLink in validLinks:
         web = urllib.request.urlopen(webURL)
     except:
         print("Error, cannot open URL: " + webURL)
-        break
+        continue
 
     soup = BeautifulSoup(web.read(), "html.parser")
 
@@ -78,7 +78,12 @@ for articleLink in validLinks:
             jsonURL = currentSource + "api/comments/views/replies/{0}?dap=true&startIndex={1}&maxReturned" \
                   "=100&maxChildren=100&approvedOnly=false&cache=true".format(currentCode, startIndex)
 
-        page = urllib.request.urlopen(jsonURL).read()
+        try:
+            page = urllib.request.urlopen(jsonURL).read()
+        except:
+            print("Error, cannot open URL: " + jsonURL)
+            break
+
         pageString = page.decode('utf-8')
         decoded = json.loads(pageString)
         dataSet = decoded["data"]["items"]

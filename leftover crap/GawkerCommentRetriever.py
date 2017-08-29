@@ -139,6 +139,7 @@ for i in range(articleStartIndex, articleEndIndex):
                         sheet.cell(row=excelRow, column=2).value = "(main image comment)"
                 except:
                     sheet.cell(row=excelRow, column=2).value = "error string"
+
                 sheet.cell(row = excelRow, column = 3).value = mainWordLen
                 avgMainWord += mainWordLen
                 sheet.cell(row = excelRow, column =4).value = mainCharLen
