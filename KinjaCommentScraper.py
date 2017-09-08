@@ -16,18 +16,15 @@ debugCounter = 1
 print("This program only works on Kinja websites, links intended for scraping should include a 10 digit article code.")
 print("As is currently implemented, the following links in 'KinjaLinks.txt' will be ignored:")
 
-validLinks = []
-with open("KinjaLinks.txt", "r") as text_file:
-    for line in text_file:
-        try:
-            findCode(line.strip())
-            validLinks.append(line.strip())
-        except:
-            if line.strip() != "":
-                print(line.strip())
-print("")
-print("There are " + str(len(validLinks)) + " valid articles")
-print("")
+validLinks = getLinks()
+
+sheet.cell(row = 1, column = 1).value = "Kinja Article ID"
+sheet.cell(row = 1, column = 2).value = "Article Info"
+sheet.cell(row = 1, column = 3).value = "Comments"
+sheet.cell(row = 1, column = 4).value = "Word Count"
+sheet.cell(row = 1, column = 5).value = "Character Count"
+sheet.cell(row = 1, column = 6).value = "Likes"
+sheet.cell(row = 1, column = 7).value = "Images"
 
 for articleLink in validLinks:
 
@@ -40,9 +37,6 @@ for articleLink in validLinks:
     webURL = currentSource + currentCode
     print("")
     print("link: " + articleLink)
-    # print("source: " + currentSource)
-    # print("code: " + currentCode)
-
 
     try:
         web = urllib.request.urlopen(webURL)
@@ -64,17 +58,19 @@ for articleLink in validLinks:
     sheet.cell(row=headlineRow, column=2).hyperlink = webURL
     sheet.cell(row=headlineRow+1, column=2).value = "Article Title: " + headline
 
-    #stats to keep track of
+    # stats to keep track of
+    avgMainLikes = 0
     avgMainWord = 0
     avgMainChar = 0
+    avgChildLikes = 0
     avgChildWord = 0
     avgChildChar = 0
     imageCount = 0
 
-    #Keep looping until we get all comments (calling different JSON links)
+    # Keep looping until we get all comments (calling different JSON links)
     while startIndex < totalNumComments:
 
-        #Link can be changed to included non approved comments as well
+        # Link can be changed to included non approved comments as well
         jsonURL = currentSource + "api/comments/views/replies/{0}?dap=true&startIndex={1}&maxReturned" \
                   "=100&maxChildren=100&approvedOnly=true&cache=true".format(currentCode, startIndex)
 
@@ -93,8 +89,11 @@ for articleLink in validLinks:
 
             mainComment = dataSet[counter]["reply"]["deprecatedFullPlainText"]
 
+            mainLikes = dataSet[counter]["reply"]["likes"]
+            avgMainLikes += mainLikes
+
             try:
-                imageColumn = 6
+                imageColumn = 7
                 imageSet = dataSet[counter]["reply"]["images"]
                 imageCounter = 0
                 imageLink = ""
@@ -122,16 +121,18 @@ for articleLink in validLinks:
                     else:
                         sheet.cell(row=excelRow, column=3).value = "(main image comment)"
                 except:
-                    sheet.cell(row=excelRow, column=3).value = "error string"
-                sheet.cell(row = excelRow, column=3).font = Font(bold = True)
-                sheet.cell(row = excelRow, column=4).value = mainCommentWordCount
-                sheet.cell(row = excelRow, column=5).value = mainCommentCharacterCount
+                    sheet.cell(row = excelRow, column = 3).value = "error string"
+                sheet.cell(row = excelRow, column = 3).font = Font(bold = True)
+                sheet.cell(row = excelRow, column = 4).value = mainCommentWordCount
+                sheet.cell(row = excelRow, column = 5).value = mainCommentCharacterCount
+                sheet.cell(row = excelRow, column = 6).value = mainLikes
                 excelRow+=1
             elif imageLink != None:
                 sheet.cell(row = excelRow, column = 3).value = "(main image comment)"
                 sheet.cell(row = excelRow, column = 3).font = Font(bold = True)
                 sheet.cell(row = excelRow, column = 4).value = 0
                 sheet.cell(row = excelRow, column = 5).value = 0
+                sheet.cell(row = excelRow, column = 6).value = mainLikes
                 excelRow+=1
 
             numberOfComments+=1
@@ -142,10 +143,12 @@ for articleLink in validLinks:
             while childCounter < len(childSet):
 
                 childComment = childSet[childCounter]["deprecatedFullPlainText"]
+                childLikes = childSet[childCounter]["likes"]
+                avgChildLikes += childLikes
 
                 try:
                     imageSet = childSet[childCounter]["images"]
-                    imageColumn = 6
+                    imageColumn = 7
                     imageCounter = 0
                     imageLink = ""
                     while imageCounter < len(imageSet):
@@ -175,20 +178,20 @@ for articleLink in validLinks:
                         sheet.cell(row=excelRow, column=3).value = "error string"
                     sheet.cell(row = excelRow, column = 4).value = childWordLen
                     sheet.cell(row = excelRow, column = 5).value = childCharLen
+                    sheet.cell(row = excelRow, column = 6).value = childLikes
                     excelRow+=1
                     approvedChildComments+= 1
                 elif imageLink != None:
                     sheet.cell(row = excelRow, column = 3).value = "(child image comment)"
                     sheet.cell(row = excelRow, column = 4).value = 0
                     sheet.cell(row = excelRow, column = 5).value = 0
+                    sheet.cell(row = excelRow, column = 6).value = childLikes
                     excelRow+=1
                     approvedChildComments+= 1
                 childCounter+=1
             counter += 1
         startIndex+=100
         # print("Adding another 100 to get comments " + str(startIndex))
-
-
 
     #code to parse into excel document chosen above
     sheet.cell(row = headlineRow+2, column = 2).value = "Number of total comments: {}".format(str(totalNumComments))
@@ -200,36 +203,44 @@ for articleLink in validLinks:
         format(str(approvedChildComments))
 
     try:
-        sheet.cell(row = headlineRow+6, column = 2).value = "Average Main Comment Word Count: {}".\
-                format(str(avgMainWord/numberOfComments))
-        sheet.cell(row = headlineRow+7, column = 2).value = "Average Main Comment Character Count: {}".\
+        sheet.cell(row = headlineRow+6, column = 2).value = "Average Main Comment Likes: {}".\
+                    format(str(avgMainLikes/numberOfComments))
+        sheet.cell(row = headlineRow+7, column = 2).value = "Average Main Comment Word Count: {}".\
+                    format(str(avgMainWord/numberOfComments))
+        sheet.cell(row = headlineRow+8, column = 2).value = "Average Main Comment Character Count: {}".\
                     format(str(avgMainChar/numberOfComments))
     except:
-        sheet.cell(row = headlineRow+6, column = 2).value = "Average Main Comment Word Count: {}".\
+        sheet.cell(row = headlineRow+6, column = 2).value = "Average Main Comment Likes: {}".\
                     format("0")
-        sheet.cell(row = headlineRow+7, column = 2).value = "Average Main Comment Character Count: {}".\
-                format("0")
+        sheet.cell(row = headlineRow+7, column = 2).value = "Average Main Comment Word Count: {}".\
+                    format("0")
+        sheet.cell(row = headlineRow+8, column = 2).value = "Average Main Comment Character Count: {}".\
+                    format("0")
 
     try:
-        sheet.cell(row = headlineRow+8, column = 2).value = "Average Child Comment Word Count: {}".\
+        sheet.cell(row = headlineRow+9, column = 2).value = "Average Child Comment Likes: {}".\
+                    format(str(avgChildLikes/approvedChildComments))
+        sheet.cell(row = headlineRow+10, column = 2).value = "Average Child Comment Word Count: {}".\
                     format(str(avgChildWord/approvedChildComments))
-        sheet.cell(row = headlineRow+9, column = 2).value = "Average Child Comment Character Count: {}".\
-                format(str(avgChildChar/approvedChildComments))
+        sheet.cell(row = headlineRow+11, column = 2).value = "Average Child Comment Character Count: {}".\
+                    format(str(avgChildChar/approvedChildComments))
     except:
-        sheet.cell(row = headlineRow+8, column = 2).value = "Average Child Comment Word Count: {}".\
+        sheet.cell(row = headlineRow+9, column = 2).value = "Average Child Comment Likes: {}".\
                     format("0")
-        sheet.cell(row = headlineRow+9, column = 2).value = "Average Child Comment Character Count: {}".\
-                format("0")
+        sheet.cell(row = headlineRow+10, column = 2).value = "Average Child Comment Word Count: {}".\
+                    format("0")
+        sheet.cell(row = headlineRow+11, column = 2).value = "Average Child Comment Character Count: {}".\
+                    format("0")
 
-    sheet.cell(row = headlineRow+10, column = 2).value = "Number of images: {}".\
+    sheet.cell(row = headlineRow+12, column = 2).value = "Number of images: {}".\
             format(str(imageCount))
 
 
     print("Article {} done".format(debugCounter))
-    debugCounter+=1
+    debugCounter += 1
 
     if(numberOfComments < 9):
-        excelRow += 12
+        excelRow += 14
     else:
         excelRow += 2
     wb.save('KinjaComments.xlsx')

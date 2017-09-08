@@ -16,18 +16,20 @@ approved = True
 print("This program only works on Kinja websites, links intended for scraping should include a 10 digit article code.")
 print("As is currently implemented, the following links in 'KinjaLinks.txt' will be ignored:")
 
-validLinks = []
-with open("KinjaLinks.txt", "r") as text_file:
-    for line in text_file:
-        try:
-            findCode(line.strip())
-            validLinks.append(line.strip())
-        except:
-            if line.strip() != "":
-                print(line.strip())
-print("")
-print("There are " + str(len(validLinks)) + " valid articles")
-print("")
+validLinks = getLinks()
+
+sheet.cell(row = 1, column = 1).value = "Article Link"
+sheet.cell(row = 1, column = 2).value = "No. of Total Comments"
+sheet.cell(row = 1, column = 3).value = "No. of Posted Comments"
+sheet.cell(row = 1, column = 4).value = "No. of Main"
+sheet.cell(row = 1, column = 5).value = "No. of Children"
+sheet.cell(row = 1, column = 6).value = "Avg Main Likes"
+sheet.cell(row = 1, column = 7).value = "Avg Main Word Count"
+sheet.cell(row = 1, column = 8).value = "Avg Main Character Count"
+sheet.cell(row = 1, column = 9).value = "Avg Child Likes"
+sheet.cell(row = 1, column = 10).value = "Avg Child Word Count"
+sheet.cell(row = 1, column = 11).value = "Avg Child Character Count"
+sheet.cell(row = 1, column = 12).value = "Number of images"
 
 for articleLink in validLinks:
 
@@ -38,10 +40,6 @@ for articleLink in validLinks:
     currentSource = findSource(articleLink)
     currentCode = findCode(articleLink)
     webURL = currentSource + currentCode
-    # print("")
-    # print("link: " + articleLink)
-    # print("source: " + currentSource)
-    # print("code: " + currentCode)
 
     try:
         web = urllib.request.urlopen(webURL)
@@ -62,8 +60,10 @@ for articleLink in validLinks:
     headlineRow = excelRow
     # sheet.cell(row=headlineRow, column=1).value = (headline)
     # stats to keep track of
+    avgMainLikes = 0
     avgMainWord = 0
     avgMainChar = 0
+    avgChildLikes = 0
     avgChildWord = 0
     avgChildChar = 0
     imageCount = 0
@@ -96,6 +96,7 @@ for articleLink in validLinks:
                 imageCount += len(dataSet[counter]["reply"]["images"])
             except:
                 pass
+            avgMainLikes += dataSet[counter]["reply"]["likes"]
 
             if mainComment != "":
                 mainCommentWordCount = countWords(mainComment)
@@ -112,9 +113,10 @@ for articleLink in validLinks:
 
                 childComment = childSet[childCounter]["deprecatedFullPlainText"]
                 try:
-                    imageCount += len(childSet[childCounter]["reply"]["images"])
+                    imageCount += len(childSet[childCounter]["images"])
                 except:
                     pass
+                avgChildLikes += childSet[childCounter]["likes"]
 
                 if childComment != "":
                     childWordLen = countWords(childComment)
@@ -128,23 +130,27 @@ for articleLink in validLinks:
 
     sheet.cell(row = excelRow, column = 1).hyperlink = webURL
     sheet.cell(row = excelRow, column = 2).value = totalNumComments
-    sheet.cell(row = excelRow, column = 3).value = ((numberOfComments + approvedChildComments))
-    sheet.cell(row = excelRow, column = 4).value = ((numberOfComments))
-    sheet.cell(row = excelRow, column = 5).value = ((approvedChildComments))
+    sheet.cell(row = excelRow, column = 3).value = numberOfComments + approvedChildComments
+    sheet.cell(row = excelRow, column = 4).value = numberOfComments
+    sheet.cell(row = excelRow, column = 5).value = approvedChildComments
     try:
-        sheet.cell(row = excelRow, column = 6).value = ((avgMainWord/numberOfComments))
-        sheet.cell(row = excelRow, column = 7).value = ((avgMainChar/numberOfComments))
+        sheet.cell(row = excelRow, column = 6).value = avgMainLikes/numberOfComments
+        sheet.cell(row = excelRow, column = 7).value = avgMainWord/numberOfComments
+        sheet.cell(row = excelRow, column = 8).value = avgMainChar/numberOfComments
     except:
         sheet.cell(row = excelRow, column = 6).value = numberOfComments
         sheet.cell(row = excelRow, column = 7).value = numberOfComments
+        sheet.cell(row = excelRow, column = 8).value = numberOfComments
     try:
-        sheet.cell(row = excelRow, column = 8).value = ((avgChildWord/approvedChildComments))
-        sheet.cell(row = excelRow, column = 9).value = ((avgChildChar/approvedChildComments))
+        sheet.cell(row = excelRow, column = 9).value = avgChildLikes/approvedChildComments
+        sheet.cell(row = excelRow, column = 10).value = avgChildWord/approvedChildComments
+        sheet.cell(row = excelRow, column = 11).value = avgChildChar/approvedChildComments
     except:
-        sheet.cell(row = excelRow, column = 8).value = ((approvedChildComments))
-        sheet.cell(row = excelRow, column = 9).value = ((approvedChildComments))
+        sheet.cell(row = excelRow, column = 9).value = approvedChildComments
+        sheet.cell(row = excelRow, column = 10).value = approvedChildComments
+        sheet.cell(row = excelRow, column = 11).value = approvedChildComments
 
-    sheet.cell(row = excelRow, column = 10).value = imageCount
+    sheet.cell(row = excelRow, column = 12).value = imageCount
 
     # if approved:
     # else:

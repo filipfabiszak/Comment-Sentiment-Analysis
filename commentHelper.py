@@ -43,7 +43,7 @@ def getArticle(link):
     try:
         webLink = urllib.request.urlopen(link)
     except:
-        print("Error, cannot open URL")
+        print("Error, cannot open URL: " + webURL)
 
     soup = BeautifulSoup(webLink.read(), "html.parser")
     for tag in soup.find_all('small'):
@@ -60,45 +60,23 @@ def getArticle(link):
     for comment in article:
         text = comment.getText()
         fullComments += " " + text.strip()
-    print(fullComments)
+    # print(fullComments)
     return fullComments
 
-
-# Helper function to get list of code from text file (GAWKER)
-def getCode():
-    links = []
-    articleCodes = []
-    with open("linksg.txt", "r") as text_file:
+def getLinks():
+    validLinks = []
+    with open("KinjaLinks.txt", "r") as text_file:
         for line in text_file:
-            links.append(line.strip())
-
-    for link in links:
-        articleCodes.append(findCode(link))
-    return articleCodes
-
-
-# Helper function to get list of code from text file (JEZEBEL)
-def getCode2():
-    links = []
-    articleCodes = []
-    with open("linksj.txt", "r") as text_file:
-        for line in text_file:
-            links.append(line.strip())
-
-    for link in links:
-        articleCodes.append(findCode(link))
-    return articleCodes
-
-def getSplinterCodes():
-    links = []
-    articleCodes = []
-    with open("splinterCoupleLinks.txt", "r") as text_file:
-        for line in text_file:
-            links.append(line.strip())
-
-    for link in links:
-        articleCodes.append(findCode(link))
-    return articleCodes
+            try:
+                findCode(line.strip())
+                validLinks.append(line.strip())
+            except:
+                if line.strip() != "":
+                    print(line.strip())
+    print("")
+    print("There are " + str(len(validLinks)) + " valid articles")
+    print("")
+    return validLinks
 
 
 # Helper function to get headline

@@ -1,34 +1,47 @@
-from commentHelper import getArticle
-from commentHelper import getCode
 import openpyxl
+from commentHelper import *
 
-'''Script to scrape Gawker/Jezebel articles completely, uncomment items to switch from Gawker/Jezebel'''
+'''Script to scrape Kinja articles completely'''
 
-articleCodes = getCode()
-#articleCodes = getCode2() #uncomment this for Jezebel article scrape instead
+excelRow = 2
+wb = openpyxl.load_workbook('KinjaArticles.xlsx')
+sheet = wb.get_sheet_by_name("Sheet1")
+debugCounter = 1
+approved = True
 
-#index for mass scraping
-startIndex = 1
-endIndex = 500
+print("This program only works on Kinja websites, links intended for scraping should include a 10 digit article code.")
+print("As is currently implemented, the following links in 'KinjaLinks.txt' will be ignored:")
 
-#change this if required scrape to start at specific row
-excelRow = 1
+validLinks = getLinks()
 
-#change worksheets/workbook here
-wb = openpyxl.load_workbook('GawkerArticleScrape.xlsx')
-sheet = wb.get_sheet_by_name("Gawker")
+sheet.cell(row = 1, column = 1).value = "Article Link"
+sheet.cell(row = 1, column = 2).value = "Word Count"
+sheet.cell(row = 1, column = 3).value = "Character Count"
+sheet.cell(row = 1, column = 4).value = "Article Text"
 
-article = input("Press enter to mass scrape or enter link for single scrape: ")
-if article == "":
-    for i in range(startIndex, endIndex):
-    #Index to keep track of the comments (used to change link and get new comments)
+for articleLink in validLinks:
 
-        currentCode = articleCodes[i]
-        webURL = "http://gawker.com/{}".format(currentCode)
-        #webURL = "http://jezebel.com/{}".format(currentCode) #uncomment for jezebel link
+    currentSource = findSource(articleLink)
+    currentCode = findCode(articleLink)
+    webURL = currentSource + currentCode
+
+    try:
         currentArticle = getArticle(webURL)
-        sheet.cell(row = excelRow, column = 1).value = currentArticle
-        excelRow+= 1
-        wb.save("GawkerArticleScrape.xlsx")
-#remember to change save workbook to match the load workbook
-wb.save("GawkerArticleScrape.xlsx")
+    except:
+        continue
+
+    articleCharCount = countCharacters(currentArticle)
+    sheet.cell(row = excelRow, column = 1).hyperlink = webURL
+    sheet.cell(row = excelRow, column = 2).value = countWords(currentArticle)
+    sheet.cell(row = excelRow, column = 3).value = articleCharCount
+    if articleCharCount > 32767:
+        sheet.cell(row = excelRow, column = 4).value = currentArticle[:32767]
+        excelRow += 1
+        sheet.cell(row = excelRow, column = 4).value = currentArticle[32767:]
+    else:
+        sheet.cell(row = excelRow, column = 4).value = currentArticle
+
+    excelRow += 1
+    wb.save("KinjaArticles.xlsx")
+
+wb.save("KinjaArticles.xlsx")
