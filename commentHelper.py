@@ -3,28 +3,24 @@ import openpyxl
 import urllib.request
 import re
 
-
 # helper function to count words in a line
 def countWords(line):
     punct = re.compile(r'([^A-Za-z0-9 ])')
     wordList = punct.sub("", line).split()
-
     return len(wordList)
 
 # helper function to counter character in a line
 def countCharacters(line):
     return len(line)
-    # - line.count(' ') spaces count as characters...
 
 # Helper function to find article source from a link
 def findSource(link):
     matchCode = re.search(".*[/]", link)
     return (matchCode.group())
 
-
 # Helper function to find article code from a link
 def findCode(link):
-    matchCode = re.search("\d{10}$", link)
+    matchCode = re.search("\d{10}$", link.strip().strip("/"))
     return (matchCode.group())
 
 
@@ -68,7 +64,7 @@ def getLinks():
     with open("KinjaLinks.txt", "r") as text_file:
         for line in text_file:
             try:
-                findCode(line.strip())
+                findCode(line)
                 validLinks.append(line.strip())
             except:
                 if line.strip() != "":
@@ -88,7 +84,23 @@ def findHeadline(soup):
 
 # Helper function to get reply count (defined at top of article)
 def findReplies(soup):
-    replies = soup.find("a", class_="js_meta__data--comment")
-    comments=replies.find("span", class_="text")
-    r = int(comments.getText())
-    return r
+    replies = soup.find("section", class_="js_discussion-region")
+    return int(replies['data-reply-count-total'])
+
+def findLikes(webURL):
+    web = urllib.request.urlopen(webURL)
+    soup = BeautifulSoup(web.read(), "html.parser")
+    likes = soup.find("a", class_="js_like")
+    liketext=likes.find("span", class_="text")
+    try:
+        r = int(liketext.getText())
+        return r
+    except:
+        return 0
+
+
+def findRepliesFromLink(webURL):
+    web = urllib.request.urlopen(webURL)
+    soup = BeautifulSoup(web.read(), "html.parser")
+    replies = soup.find("section", class_="js_discussion-region")
+    return int(replies['data-reply-count-total'])

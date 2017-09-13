@@ -53,7 +53,7 @@ for articleLink in validLinks:
     try:
         totalNumComments = findReplies(soup)
     except:
-        print("Error, cannot find headline (maybe headline does not exist?)")
+        print("Error, cannot find replies")
         headline = "(no headline)"
 
 

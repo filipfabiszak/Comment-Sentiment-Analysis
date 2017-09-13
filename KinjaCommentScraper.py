@@ -35,8 +35,8 @@ for articleLink in validLinks:
     currentSource = findSource(articleLink)
     currentCode = findCode(articleLink)
     webURL = currentSource + currentCode
-    print("")
-    print("link: " + articleLink)
+    # print("")
+    # print("link: " + articleLink)
 
     try:
         web = urllib.request.urlopen(webURL)
