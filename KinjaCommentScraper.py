@@ -10,6 +10,9 @@ from commentHelper import *
 # row to start inputting data into excel spreadsheet
 excelRow = 2
 wb = openpyxl.load_workbook('KinjaComments.xlsx')
+delsheet = wb.get_sheet_by_name("Sheet1")
+wb.remove_sheet(delsheet)
+wb.create_sheet("Sheet1")
 sheet = wb.get_sheet_by_name("Sheet1")
 debugCounter = 1
 
@@ -246,3 +249,4 @@ for articleLink in validLinks:
     wb.save('KinjaComments.xlsx')
 
 wb.save('KinjaComments.xlsx')
+print("Kinja Comment Scraping Finished")

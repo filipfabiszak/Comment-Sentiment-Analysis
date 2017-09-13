@@ -9,6 +9,9 @@ from commentHelper import *
 # row to start parsing at (change if needed)
 excelRow = 2
 wb = openpyxl.load_workbook('KinjaData.xlsx')
+delsheet = wb.get_sheet_by_name("Sheet1")
+wb.remove_sheet(delsheet)
+wb.create_sheet("Sheet1")
 sheet = wb.get_sheet_by_name("Sheet1")
 debugCounter = 1
 approved = True
@@ -172,3 +175,4 @@ for articleLink in validLinks:
     wb.save('KinjaData.xlsx')
 
 wb.save('KinjaData.xlsx')
+print("Kinja Data Scraping Finished")

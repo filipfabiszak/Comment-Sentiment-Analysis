@@ -6,6 +6,9 @@ from commentHelper import *
 excelRow = 2
 debugcounter = 0
 wb = openpyxl.load_workbook('KinjaArticles.xlsx')
+delsheet = wb.get_sheet_by_name("Sheet1")
+wb.remove_sheet(delsheet)
+wb.create_sheet("Sheet1")
 sheet = wb.get_sheet_by_name("Sheet1")
 debugCounter = 1
 approved = True
@@ -51,3 +54,4 @@ for articleLink in validLinks:
     wb.save("KinjaArticles.xlsx")
 
 wb.save("KinjaArticles.xlsx")
+print("Kinja Article Scraping Finished")
