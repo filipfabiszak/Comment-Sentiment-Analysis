@@ -2,11 +2,11 @@
 Instructions:
 1. Download this repository
 2. Unzip/extract the folder
-3. Open Pycharm
-4. Open Project
-   * Navigate to "Comment-Sentiment-Analysis-master" and open it as a project
+3. Open Pycharm and when prompted, Open project
+   * Navigate to "Comment-Sentiment-Analysis-master" (wherever you extracted/downloaded it) and open it as a project
 5. Ensure that a python interpreter is selected by navigating to File -> Settings -> Project -> Project Interpreter
-   * if not, select python3.x (as long as it's 3.something it should be fine)
+   * If not, select python3.x (as long as it's 3.something it should be fine)
+   * If none is displayed, go to https://www.python.org/downloads/ and download the latest version of Python (3.6.x). Restart PyCharm afterwards and navigate to the same menu and select the Python version you just installed. 
 6. On the same "Project Interpreter" view, there should be a list of "Packages" available to the project
 7. To run these scripts, we must install 2 packages using the "+" on the right hand side
    * bs4
