@@ -24,10 +24,12 @@ validLinks = getLinks()
 sheet.cell(row = 1, column = 1).value = "Kinja Article ID"
 sheet.cell(row = 1, column = 2).value = "Article Info"
 sheet.cell(row = 1, column = 3).value = "Comments"
-sheet.cell(row = 1, column = 4).value = "Word Count"
-sheet.cell(row = 1, column = 5).value = "Character Count"
-sheet.cell(row = 1, column = 6).value = "Likes"
-sheet.cell(row = 1, column = 7).value = "Images"
+sheet.cell(row = 1, column = 4).value = "Commenter Name"
+sheet.cell(row = 1, column = 5).value = "Commenter Target Name"
+sheet.cell(row = 1, column = 6).value = "Word Count"
+sheet.cell(row = 1, column = 7).value = "Character Count"
+sheet.cell(row = 1, column = 8).value = "Likes"
+sheet.cell(row = 1, column = 9).value = "Images"
 
 for articleLink in validLinks:
 
@@ -52,6 +54,7 @@ for articleLink in validLinks:
     #Find the specific HTML element that holds the number of total replies
     try:
         headline = findHeadline(soup)
+        author = findAuthor(soup)
         totalNumComments = findReplies(soup)
     except:
         print("Error, cannot find headline or totalcomments")
@@ -60,6 +63,7 @@ for articleLink in validLinks:
     sheet.cell(row=headlineRow, column=1).value = currentCode
     sheet.cell(row=headlineRow, column=2).hyperlink = webURL
     sheet.cell(row=headlineRow+1, column=2).value = "Article Title: " + headline
+    sheet.cell(row=headlineRow+2, column=2).value = "Author: " + author
 
     # stats to keep track of
     avgMainLikes = 0
@@ -91,12 +95,13 @@ for articleLink in validLinks:
         while counter < len(dataSet) and len(dataSet) != 0:
 
             mainComment = dataSet[counter]["reply"]["deprecatedFullPlainText"]
-
+            mainCommentAuthor = dataSet[counter]["reply"]["author"]["displayName"]
+            mainCommentTarget = dataSet[counter]["reply"]["replyMeta"]["parentAuthor"]["displayName"]
             mainLikes = dataSet[counter]["reply"]["likes"]
             avgMainLikes += mainLikes
 
             try:
-                imageColumn = 7
+                imageColumn = 8
                 imageSet = dataSet[counter]["reply"]["images"]
                 imageCounter = 0
                 imageLink = ""
@@ -126,16 +131,20 @@ for articleLink in validLinks:
                 except:
                     sheet.cell(row = excelRow, column = 3).value = "error string"
                 sheet.cell(row = excelRow, column = 3).font = Font(bold = True)
-                sheet.cell(row = excelRow, column = 4).value = mainCommentWordCount
-                sheet.cell(row = excelRow, column = 5).value = mainCommentCharacterCount
-                sheet.cell(row = excelRow, column = 6).value = mainLikes
+                sheet.cell(row = excelRow, column = 4).value = mainCommentAuthor
+                sheet.cell(row = excelRow, column = 5).value = mainCommentTarget
+                sheet.cell(row = excelRow, column = 6).value = mainCommentWordCount
+                sheet.cell(row = excelRow, column = 7).value = mainCommentCharacterCount
+                sheet.cell(row = excelRow, column = 8).value = mainLikes
                 excelRow+=1
             elif imageLink != None:
                 sheet.cell(row = excelRow, column = 3).value = "(main image comment)"
                 sheet.cell(row = excelRow, column = 3).font = Font(bold = True)
-                sheet.cell(row = excelRow, column = 4).value = 0
-                sheet.cell(row = excelRow, column = 5).value = 0
-                sheet.cell(row = excelRow, column = 6).value = mainLikes
+                sheet.cell(row = excelRow, column = 4).value = mainCommentAuthor
+                sheet.cell(row = excelRow, column = 5).value = mainCommentTarget
+                sheet.cell(row = excelRow, column = 6).value = 0
+                sheet.cell(row = excelRow, column = 7).value = 0
+                sheet.cell(row = excelRow, column = 8).value = mainLikes
                 excelRow+=1
 
             numberOfComments+=1
@@ -146,12 +155,21 @@ for articleLink in validLinks:
             while childCounter < len(childSet):
 
                 childComment = childSet[childCounter]["deprecatedFullPlainText"]
+                childCommentAuthor = childSet[childCounter]["author"]["displayName"]
+                try:
+                    childCommentTarget = childSet[childCounter]["replyMeta"]["parentAuthor"]["displayName"]
+                except:
+                    try:
+                        childCommentTarget = childSet[childCounter]["replyMeta"]["parentAuthors"][0]["displayName"]
+                    except:
+                        childCommentTarget = "No Target Specified" # hacky fix for kinja having different replyMeta
+
                 childLikes = childSet[childCounter]["likes"]
                 avgChildLikes += childLikes
 
                 try:
                     imageSet = childSet[childCounter]["images"]
-                    imageColumn = 7
+                    imageColumn = 8
                     imageCounter = 0
                     imageLink = ""
                     while imageCounter < len(imageSet):
@@ -179,16 +197,20 @@ for articleLink in validLinks:
                             sheet.cell(row=excelRow, column=3).value = "(child image comment)"
                     except:
                         sheet.cell(row=excelRow, column=3).value = "error string"
-                    sheet.cell(row = excelRow, column = 4).value = childWordLen
-                    sheet.cell(row = excelRow, column = 5).value = childCharLen
-                    sheet.cell(row = excelRow, column = 6).value = childLikes
+                    sheet.cell(row = excelRow, column = 4).value = childCommentAuthor
+                    sheet.cell(row = excelRow, column = 5).value = childCommentTarget
+                    sheet.cell(row = excelRow, column = 6).value = childWordLen
+                    sheet.cell(row = excelRow, column = 7).value = childCharLen
+                    sheet.cell(row = excelRow, column = 8).value = childLikes
                     excelRow+=1
                     approvedChildComments+= 1
                 elif imageLink != None:
                     sheet.cell(row = excelRow, column = 3).value = "(child image comment)"
-                    sheet.cell(row = excelRow, column = 4).value = 0
-                    sheet.cell(row = excelRow, column = 5).value = 0
-                    sheet.cell(row = excelRow, column = 6).value = childLikes
+                    sheet.cell(row = excelRow, column = 4).value = childCommentAuthor
+                    sheet.cell(row = excelRow, column = 5).value = childCommentTarget
+                    sheet.cell(row = excelRow, column = 6).value = 0
+                    sheet.cell(row = excelRow, column = 7).value = 0
+                    sheet.cell(row = excelRow, column = 8).value = childLikes
                     excelRow+=1
                     approvedChildComments+= 1
                 childCounter+=1
@@ -197,45 +219,45 @@ for articleLink in validLinks:
         # print("Adding another 100 to get comments " + str(startIndex))
 
     #code to parse into excel document chosen above
-    sheet.cell(row = headlineRow+2, column = 2).value = "Number of total comments: {}".format(str(totalNumComments))
-    sheet.cell(row = headlineRow+3, column = 2).value = "Number of total posted comments: {}".\
+    sheet.cell(row = headlineRow+3, column = 2).value = "Number of total comments: {}".format(str(totalNumComments))
+    sheet.cell(row = headlineRow+4, column = 2).value = "Number of total posted comments: {}".\
         format(str(numberOfComments + approvedChildComments))
-    sheet.cell(row = headlineRow+4, column = 2).value = "Number of main comments: {}"\
+    sheet.cell(row = headlineRow+5, column = 2).value = "Number of main comments: {}"\
         .format(str(numberOfComments))
-    sheet.cell(row = headlineRow+5, column = 2).value = "Number of child comments: {}".\
+    sheet.cell(row = headlineRow+6, column = 2).value = "Number of child comments: {}".\
         format(str(approvedChildComments))
 
     try:
-        sheet.cell(row = headlineRow+6, column = 2).value = "Average Main Comment Likes: {}".\
+        sheet.cell(row = headlineRow+7, column = 2).value = "Average Main Comment Likes: {}".\
                     format(str(avgMainLikes/numberOfComments))
-        sheet.cell(row = headlineRow+7, column = 2).value = "Average Main Comment Word Count: {}".\
+        sheet.cell(row = headlineRow+8, column = 2).value = "Average Main Comment Word Count: {}".\
                     format(str(avgMainWord/numberOfComments))
-        sheet.cell(row = headlineRow+8, column = 2).value = "Average Main Comment Character Count: {}".\
+        sheet.cell(row = headlineRow+9, column = 2).value = "Average Main Comment Character Count: {}".\
                     format(str(avgMainChar/numberOfComments))
     except:
-        sheet.cell(row = headlineRow+6, column = 2).value = "Average Main Comment Likes: {}".\
+        sheet.cell(row = headlineRow+7, column = 2).value = "Average Main Comment Likes: {}".\
                     format("0")
-        sheet.cell(row = headlineRow+7, column = 2).value = "Average Main Comment Word Count: {}".\
+        sheet.cell(row = headlineRow+8, column = 2).value = "Average Main Comment Word Count: {}".\
                     format("0")
-        sheet.cell(row = headlineRow+8, column = 2).value = "Average Main Comment Character Count: {}".\
+        sheet.cell(row = headlineRow+9, column = 2).value = "Average Main Comment Character Count: {}".\
                     format("0")
 
     try:
-        sheet.cell(row = headlineRow+9, column = 2).value = "Average Child Comment Likes: {}".\
+        sheet.cell(row = headlineRow+10, column = 2).value = "Average Child Comment Likes: {}".\
                     format(str(avgChildLikes/approvedChildComments))
-        sheet.cell(row = headlineRow+10, column = 2).value = "Average Child Comment Word Count: {}".\
+        sheet.cell(row = headlineRow+11, column = 2).value = "Average Child Comment Word Count: {}".\
                     format(str(avgChildWord/approvedChildComments))
-        sheet.cell(row = headlineRow+11, column = 2).value = "Average Child Comment Character Count: {}".\
+        sheet.cell(row = headlineRow+12, column = 2).value = "Average Child Comment Character Count: {}".\
                     format(str(avgChildChar/approvedChildComments))
     except:
-        sheet.cell(row = headlineRow+9, column = 2).value = "Average Child Comment Likes: {}".\
+        sheet.cell(row = headlineRow+10, column = 2).value = "Average Child Comment Likes: {}".\
                     format("0")
-        sheet.cell(row = headlineRow+10, column = 2).value = "Average Child Comment Word Count: {}".\
+        sheet.cell(row = headlineRow+11, column = 2).value = "Average Child Comment Word Count: {}".\
                     format("0")
-        sheet.cell(row = headlineRow+11, column = 2).value = "Average Child Comment Character Count: {}".\
+        sheet.cell(row = headlineRow+12, column = 2).value = "Average Child Comment Character Count: {}".\
                     format("0")
 
-    sheet.cell(row = headlineRow+12, column = 2).value = "Number of images: {}".\
+    sheet.cell(row = headlineRow+13, column = 2).value = "Number of images: {}".\
             format(str(imageCount))
 
 
@@ -243,7 +265,7 @@ for articleLink in validLinks:
     debugCounter += 1
 
     if(numberOfComments < 9):
-        excelRow += 14
+        excelRow += 15
     else:
         excelRow += 2
     wb.save('KinjaComments.xlsx')

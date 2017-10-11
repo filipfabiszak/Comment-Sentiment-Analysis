@@ -81,15 +81,30 @@ def findHeadline(soup):
     headline = headlineHTML.getText()
     return headline
 
+# Helper function to get headline
+def findAuthor(soup):
+    authorDiv = soup.find("div", class_="meta__byline")
+    author = authorDiv.find("a").getText()
+    return author
+
+# Helper function to get headline
+def findAuthor(soup):
+    authorDiv = soup.find("div", class_="meta__byline")
+    author = authorDiv.find("a").getText()
+    return author
+
+# Helper function to get headline
+def findDate(soup):
+    timeElement = soup.find("time", class_="meta__time updated")
+    dateNtime = timeElement.find("a").getText()
+    return dateNtime
 
 # Helper function to get reply count (defined at top of article)
 def findReplies(soup):
     replies = soup.find("section", class_="js_discussion-region")
     return int(replies['data-reply-count-total'])
 
-def findLikes(webURL):
-    web = urllib.request.urlopen(webURL)
-    soup = BeautifulSoup(web.read(), "html.parser")
+def findLikes(soup):
     likes = soup.find("a", class_="js_like")
     liketext=likes.find("span", class_="text")
     try:
@@ -97,10 +112,3 @@ def findLikes(webURL):
         return r
     except:
         return 0
-
-
-def findRepliesFromLink(webURL):
-    web = urllib.request.urlopen(webURL)
-    soup = BeautifulSoup(web.read(), "html.parser")
-    replies = soup.find("section", class_="js_discussion-region")
-    return int(replies['data-reply-count-total'])
