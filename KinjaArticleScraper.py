@@ -42,14 +42,42 @@ for articleLink in validLinks:
     web = urllib.request.urlopen(webURL)
     soup = BeautifulSoup(web.read(), "html.parser")
 
+    # Catching all the things!
+    try:
+        headline = findHeadline(soup)
+    except:
+        headline = "Failed to find headline"
+        print("failed to find article " + articleLink + " title")
+    try:
+        author = findAuthor(soup)
+    except:
+        author = "Failed to find author"
+        print("failed to find article " + articleLink + " author")
+    try:
+        date = findDate(soup)
+    except:
+        date = "Failed to find date"
+        print("failed to find article " + articleLink + " date")
+    try:
+        replies = findReplies(soup)
+    except:
+        replies = "Failed to find replies"
+        print("failed to find article " + articleLink + " replies")
+    try:
+        likes = findLikes(soup)
+    except:
+        likes = "Failed to find likes"
+        print("failed to find article " + articleLink + " likes")
+
     articleCharCount = countCharacters(currentArticle)
+    articleWordCount = countWords(currentArticle)
     sheet.cell(row = excelRow, column = 1).hyperlink = webURL
-    sheet.cell(row = excelRow, column = 2).value = findHeadline(soup)
-    sheet.cell(row = excelRow, column = 3).value = findAuthor(soup)
-    sheet.cell(row = excelRow, column = 4).value = findDate(soup)
-    sheet.cell(row = excelRow, column = 5).value = findReplies(soup)
-    sheet.cell(row = excelRow, column = 6).value = findLikes(soup)
-    sheet.cell(row = excelRow, column = 7).value = countWords(currentArticle)
+    sheet.cell(row = excelRow, column = 2).value = headline
+    sheet.cell(row = excelRow, column = 3).value = author
+    sheet.cell(row = excelRow, column = 4).value = date
+    sheet.cell(row = excelRow, column = 5).value = replies
+    sheet.cell(row = excelRow, column = 6).value = likes
+    sheet.cell(row = excelRow, column = 7).value = articleWordCount
     sheet.cell(row = excelRow, column = 8).value = articleCharCount
     if articleCharCount > 32767:
         sheet.cell(row = excelRow, column = 9).value = currentArticle[:32767]
