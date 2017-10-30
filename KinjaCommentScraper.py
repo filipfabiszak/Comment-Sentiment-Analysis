@@ -95,8 +95,16 @@ for articleLink in validLinks:
         while counter < len(dataSet) and len(dataSet) != 0:
 
             mainComment = dataSet[counter]["reply"]["deprecatedFullPlainText"]
-            mainCommentAuthor = dataSet[counter]["reply"]["author"]["displayName"]
-            mainCommentTarget = dataSet[counter]["reply"]["replyMeta"]["parentAuthor"]["displayName"]
+            try:
+                mainCommentAuthor = dataSet[counter]["reply"]["author"]["displayName"]
+            except:
+                mainCommentAuthor = "Failed to find comment author"
+
+            try:
+                mainCommentTarget = dataSet[counter]["reply"]["replyMeta"]["parentAuthor"]["displayName"]
+            except:
+                mainCommentTarget = "Failed to find comment target"
+
             mainLikes = dataSet[counter]["reply"]["likes"]
             avgMainLikes += mainLikes
 
@@ -155,7 +163,11 @@ for articleLink in validLinks:
             while childCounter < len(childSet):
 
                 childComment = childSet[childCounter]["deprecatedFullPlainText"]
-                childCommentAuthor = childSet[childCounter]["author"]["displayName"]
+
+                try:
+                    childCommentAuthor = childSet[childCounter]["author"]["displayName"]
+                except:
+                    childCommentAuthor = "Failed to find comment author"
                 try:
                     childCommentTarget = childSet[childCounter]["replyMeta"]["parentAuthor"]["displayName"]
                 except:
